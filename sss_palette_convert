@@ -9,9 +9,9 @@ end
 values = data.bytes.each_slice(2).map do |bytes|
   # Interpret bytes as a 16-bit big-endian unsigned integer
   byte  = bytes.map(&:chr).join.unpack("S>")[0]
-  red   = (get_val(byte, 0, 5) * 8.2).ceil
-  green = (get_val(byte, 5, 5) * 8.2).ceil
-  blue  = (get_val(byte, 10, 5) * 8.2).ceil
+  red   = (get_val(byte, 0, 5) << 3).ceil
+  green = (get_val(byte, 5, 5) << 3).ceil
+  blue  = (get_val(byte, 10, 5) << 3).ceil
 
   {
     red: red, green: green, blue: blue
