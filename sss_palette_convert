@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+data = File.read('FACE.PAL').force_encoding("ASCII-8BIT")
+
+red_indices   = [0..4, nil]
+green_indices = [5..6, 0..2]
+blue_indices  = [nil, 3..7]
+
+def get_val(bytes, ranges)
+  bytes.reverse
+  ranges.map.with_index do |range, i|
+    if range.nil?
+      ""
+    else
+      range.map {|byte_index| bytes[i][byte_index]}.join
+    end
+  end.join.to_i(2)
+end
+
+values = data.bytes.each_slice(2).map do |bytes|
+  red   = (get_val(bytes, red_indices) * 8.2).ceil
+  green = (get_val(bytes, green_indices) * 8.2).ceil
+  blue  = (get_val(bytes, blue_indices) * 8.2).ceil
+
+  {
+    red: red, green: green, blue: blue
+  }
+end
+
+colour_count = values.length
+data_length = 4 + 4 + 2 + 4 + 2 + (4 * colour_count)
+
+File.open("FACE.RIFF.PAL", "w") do |f|
+  f.write "RIFF"
+  f.write [data_length].pack("L<")
+  f.write "PAL "
+
+  f.write "data"
+  f.write [data_length].pack("L<")
+  f.write "\x00\x03"
+  f.write [colour_count].pack("S<")
+
+  values.each do |colour|
+    f.write colour[:red].chr
+    f.write colour[:green].chr
+    f.write colour[:blue].chr
+    f.write 0x00.chr
+  end
+end
